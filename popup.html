@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Coze URL 内容提炼器</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Coze URL 内容提炼器</h1>
+    
+    <div class="input-section">
+      <p>输入URL或使用当前页面</p>
+      <div class="url-input-container">
+        <input type="text" id="urlInput" placeholder="请输入URL">
+        <button id="useCurrentBtn">使用当前页面</button>
+      </div>
+      <button id="analyzeBtn">分析内容</button>
+    </div>
+    
+    <div class="loading-section" id="loadingSection" style="display: none;">
+      <div class="spinner"></div>
+      <p>正在分析中，请稍候...</p>
+    </div>
+    
+    <div class="result-section" id="resultSection" style="display: none;">
+      <h2>分析结果</h2>
+      <div id="resultContent" class="result-content"></div>
+    </div>
+    
+    <div class="error-section" id="errorSection" style="display: none;">
+      <h2>错误信息</h2>
+      <div id="errorContent" class="error-content"></div>
+    </div>
+  </div>
+  
+  <script src="popup.js"></script>
+</body>
+</html> 
