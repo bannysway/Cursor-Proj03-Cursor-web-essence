@@ -1,5 +1,5 @@
 /**
- * Coze URL 内容提炼器 - Chrome扩展版
+ * Coze URL 内容提炼器 - 侧边栏版
  * 
  * 这个扩展使用Coze工作流API来分析和提炼网页内容。
  * 用户可以输入URL或使用当前页面的URL进行分析。
@@ -16,15 +16,11 @@ const COZE_API_CONFIG = {
 const urlInput = document.getElementById('urlInput');
 const useCurrentBtn = document.getElementById('useCurrentBtn');
 const analyzeBtn = document.getElementById('analyzeBtn');
-const fullscreenBtn = document.getElementById('fullscreenBtn');
 const loadingSection = document.getElementById('loadingSection');
 const resultSection = document.getElementById('resultSection');
 const resultContent = document.getElementById('resultContent');
 const errorSection = document.getElementById('errorSection');
 const errorContent = document.getElementById('errorContent');
-
-// 存储当前分析结果
-let currentResult = null;
 
 /**
  * 初始化扩展
@@ -33,47 +29,15 @@ function initExtension() {
   // 绑定按钮事件
   useCurrentBtn.addEventListener('click', useCurrentUrl);
   analyzeBtn.addEventListener('click', analyzeUrl);
-  fullscreenBtn.addEventListener('click', openFullscreen);
   
-  // 自动调整弹窗大小
-  adjustPopupSize();
-  
-  // 监听窗口大小变化
-  window.addEventListener('resize', adjustPopupSize);
-}
-
-/**
- * 调整弹窗大小
- */
-function adjustPopupSize() {
-  // 获取可用的最大宽度和高度
-  const maxWidth = window.innerWidth;
-  const maxHeight = window.innerHeight;
-  
-  // 设置容器大小
-  document.querySelector('.container').style.width = Math.min(850, maxWidth - 40) + 'px';
-  
-  // 调整结果区域高度
-  if (resultSection.style.display !== 'none') {
-    const resultAreaHeight = maxHeight - 250; // 减去其他元素的高度
-    resultContent.style.height = Math.max(300, resultAreaHeight) + 'px';
-  }
-}
-
-/**
- * 在新窗口中打开全屏视图
- */
-function openFullscreen() {
-  // 创建一个新的窗口
-  chrome.windows.create({
-    url: chrome.runtime.getURL('fullscreen.html'),
-    type: 'popup',
-    width: 1000,
-    height: 800
-  }, (window) => {
-    // 将当前分析结果存储到本地存储，以便新窗口可以访问
-    if (currentResult) {
-      chrome.storage.local.set({ 'currentResult': currentResult });
+  // 尝试从存储中恢复上次的URL和结果
+  chrome.storage.local.get(['lastUrl', 'lastResult'], function(data) {
+    if (data.lastUrl) {
+      urlInput.value = data.lastUrl;
+    }
+    
+    if (data.lastResult) {
+      showResult(data.lastResult);
     }
   });
 }
@@ -124,18 +88,19 @@ function analyzeUrl() {
     return;
   }
   
+  // 保存URL到本地存储
+  chrome.storage.local.set({ 'lastUrl': url });
+  
   // 显示加载状态
   showLoading();
   
   // 调用Coze API
   callCozeApi(url)
     .then(result => {
-      // 保存当前结果
-      currentResult = result;
+      // 保存结果到本地存储
+      chrome.storage.local.set({ 'lastResult': result });
       // 显示结果
       showResult(result);
-      // 调整弹窗大小
-      adjustPopupSize();
     })
     .catch(error => {
       // 显示错误
@@ -201,7 +166,7 @@ async function handleApiError(response) {
  * 显示加载状态
  */
 function showLoading() {
-  loadingSection.style.display = 'block';
+  loadingSection.style.display = 'flex';
   resultSection.style.display = 'none';
   errorSection.style.display = 'none';
 }
@@ -213,7 +178,7 @@ function showLoading() {
 function showResult(result) {
   loadingSection.style.display = 'none';
   errorSection.style.display = 'none';
-  resultSection.style.display = 'block';
+  resultSection.style.display = 'flex';
   
   try {
     // 检查API返回的状态
@@ -270,7 +235,7 @@ function showResult(result) {
 function showError(message) {
   loadingSection.style.display = 'none';
   resultSection.style.display = 'none';
-  errorSection.style.display = 'block';
+  errorSection.style.display = 'flex';
   
   errorContent.textContent = message;
 }

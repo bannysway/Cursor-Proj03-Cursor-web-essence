@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coze URL 内容提炼器 - 全屏视图</title>
+  <style>
+    body {
+      font-family: 'Microsoft YaHei', Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f5f5f5;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 30px;
+    }
+    
+    h1 {
+      font-size: 28px;
+      color: #333;
+      margin-top: 0;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    
+    .result-content {
+      background-color: white;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 30px;
+      min-height: 600px;
+      font-size: 18px;
+      line-height: 1.6;
+    }
+    
+    /* 添加标题样式 */
+    .result-content h1 {
+      font-size: 26px;
+      margin-top: 20px;
+      margin-bottom: 12px;
+      color: #333;
+      text-align: left;
+    }
+    
+    .result-content h2 {
+      font-size: 22px;
+      margin-top: 18px;
+      margin-bottom: 10px;
+      color: #333;
+    }
+    
+    .result-content h3 {
+      font-size: 20px;
+      margin-top: 16px;
+      margin-bottom: 8px;
+      color: #333;
+    }
+    
+    /* 添加段落样式 */
+    .result-content p {
+      margin: 12px 0;
+      line-height: 1.6;
+    }
+    
+    /* 添加列表样式 */
+    .result-content ul, .result-content ol {
+      margin: 12px 0;
+      padding-left: 30px;
+    }
+    
+    .result-content li {
+      margin: 8px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Coze URL 内容提炼器 - 全屏视图</h1>
+    <div id="resultContent" class="result-content">
+      <p>加载中...</p>
+    </div>
+  </div>
+  
+  <script>
+    // 从本地存储获取分析结果
+    chrome.storage.local.get(['currentResult'], function(data) {
+      if (data.currentResult) {
+        displayResult(data.currentResult);
+      } else {
+        document.getElementById('resultContent').innerHTML = '<p>没有可显示的内容。请先在弹出窗口中分析URL。</p>';
+      }
+    });
+    
+    // 显示分析结果
+    function displayResult(result) {
+      try {
+        // 检查API返回的状态
+        if (result.code === 0) {
+          // 尝试解析data字段中的JSON字符串
+          let parsedData = JSON.parse(result.data);
+          
+          // 提取实际的内容
+          let content = '';
+          if (parsedData.data) {
+            content = parsedData.data;
+            
+            // 简单的Markdown格式处理
+            // 将Markdown标题转换为HTML标题
+            content = content.replace(/^# (.*$)/gm, '<h1>$1</h1>');
+            content = content.replace(/^## (.*$)/gm, '<h2>$1</h2>');
+            content = content.replace(/^### (.*$)/gm, '<h3>$1</h3>');
+            
+            // 处理列表
+            content = content.replace(/^\d+\. (.*$)/gm, '<li>$1</li>');
+            content = content.replace(/^- (.*$)/gm, '<li>$1</li>');
+            
+            // 处理段落
+            content = content.replace(/\n\n/g, '</p><p>');
+            
+            // 包装在段落标签中
+            content = `<p>${content}</p>`;
+            
+            // 将连续的列表项包装在有序或无序列表中
+            content = content.replace(/<li>.*?<\/li>(\s*<li>.*?<\/li>)+/g, function(match) {
+              return `<ul>${match}</ul>`;
+            });
+          } else {
+            content = '无法解析返回的内容';
+          }
+          
+          // 显示格式化的内容
+          document.getElementById('resultContent').innerHTML = content;
+        } else {
+          // 如果API返回错误
+          document.getElementById('resultContent').innerHTML = `<p>API错误: ${result.msg}</p>`;
+        }
+      } catch (error) {
+        console.error('解析结果时出错:', error);
+        // 如果解析失败，显示原始JSON
+        document.getElementById('resultContent').innerHTML = `<pre>${JSON.stringify(result, null, 2)}</pre>`;
+      }
+    }
+  </script>
+</body>
+</html> 

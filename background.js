@@ -21,6 +21,12 @@ chrome.runtime.onInstalled.addListener((details) => {
   }
 });
 
+// 监听扩展图标点击事件
+chrome.action.onClicked.addListener((tab) => {
+  // 打开侧边栏
+  chrome.sidePanel.open({ tabId: tab.id });
+});
+
 // 监听来自内容脚本或弹出窗口的消息
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'analyzeUrl') {

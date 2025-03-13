@@ -3,9 +3,8 @@
   "name": "Coze URL 内容提炼器",
   "version": "1.0.0",
   "description": "使用Coze工作流API提炼和总结网页内容",
-  "permissions": ["activeTab", "tabs"],
+  "permissions": ["activeTab", "tabs", "storage", "sidePanel"],
   "action": {
-    "default_popup": "popup.html",
     "default_icon": {
       "16": "images/icon16.png",
       "48": "images/icon48.png",
@@ -19,5 +18,8 @@
   },
   "background": {
     "service_worker": "background.js"
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
   }
 } 
